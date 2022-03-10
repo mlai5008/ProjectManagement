@@ -20,7 +20,19 @@ namespace ProjectManagement.UI.ViewModels
         }
         #endregion
 
-        
+        #region Properties
+        public ObservableCollection<Developer> Developers { get; set; }
+
+        public Developer SelectedDeveloper
+        {
+            get => _selectedDeveloper;
+            set
+            {
+                _selectedDeveloper = value;
+                OnPropertyChanged();
+            }
+        }
+        #endregion
 
         #region Methods
         public void Load()
