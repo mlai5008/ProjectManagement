@@ -1,6 +1,7 @@
-﻿using System.Windows;
+﻿using ProjectManagement.UI.ViewModels;
+using System.Windows;
 
-namespace ProjectManagement.UI
+namespace ProjectManagement.UI.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -8,9 +9,11 @@ namespace ProjectManagement.UI
     public partial class MainWindow : Window
     {
         #region Ctor
-        public MainWindow()
+        public MainWindow(MainViewModel mainViewModels)
         {
             InitializeComponent();
+            DataContext = mainViewModels;
+            mainViewModels.Load();
         } 
         #endregion
     }
