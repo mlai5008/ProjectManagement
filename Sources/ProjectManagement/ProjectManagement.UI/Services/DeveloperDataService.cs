@@ -1,5 +1,6 @@
 ﻿using ProjectManagement.Domain.Models;
 using System.Collections.Generic;
+using ProjectManagement.UI.Services.Interfaces;
 
 namespace ProjectManagement.UI.Services
 {

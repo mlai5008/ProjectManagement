@@ -1,5 +1,5 @@
 ﻿using ProjectManagement.Domain.Models;
-using ProjectManagement.UI.Services;
+using ProjectManagement.UI.Services.Interfaces;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
