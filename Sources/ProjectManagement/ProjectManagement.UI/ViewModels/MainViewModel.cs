@@ -1,13 +1,17 @@
 ﻿using ProjectManagement.Domain.Models;
 using ProjectManagement.UI.Services.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace ProjectManagement.UI.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
         #region Fields
+        private readonly Dispatcher _dispatcher;
         private readonly IDeveloperDataService _developerDataService;
         private Developer _selectedDeveloper;
         #endregion
@@ -15,6 +19,7 @@ namespace ProjectManagement.UI.ViewModels
         #region Ctor
         public MainViewModel(IDeveloperDataService developerDataService)
         {
+            _dispatcher = Dispatcher.CurrentDispatcher;
             _developerDataService = developerDataService;
             Developers = new ObservableCollection<Developer>();
         }
@@ -35,14 +40,24 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Methods
-        public void Load()
+        public async Task LoadAsync()
         {
-            IEnumerable<Developer> developers = _developerDataService.GetAll();
+            IEnumerable<Developer> developers = await _developerDataService.GetAllAsync();
 
-            Developers.Clear();
-            foreach (Developer developer in developers)
+            try
             {
-                Developers.Add(developer);
+                _dispatcher.Invoke(new Action(() =>
+                {
+                    Developers.Clear();
+                    foreach (Developer developer in developers)
+                    {
+                        Developers.Add(developer);
+                    }
+                }));
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion

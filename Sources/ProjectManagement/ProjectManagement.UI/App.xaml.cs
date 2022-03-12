@@ -13,10 +13,9 @@ namespace ProjectManagement.UI
         #region Methods
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var bootstrapper = new Bootstrapper();
-            var container = bootstrapper.Bootstrap();
-
-            var mainWindow = container.Resolve<MainWindow>();
+            Bootstrapper bootstrapper = new Bootstrapper();
+            IContainer container = bootstrapper.Bootstrap();
+            MainWindow mainWindow = container.Resolve<MainWindow>();
             mainWindow.Show();
         }
         #endregion

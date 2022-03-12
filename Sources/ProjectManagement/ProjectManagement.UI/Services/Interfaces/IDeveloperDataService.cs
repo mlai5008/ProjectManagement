@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-using ProjectManagement.Domain.Models;
+﻿using ProjectManagement.Domain.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Interfaces
 {
     public interface IDeveloperDataService
     {
         #region Methods
-        IEnumerable<Developer> GetAll();
+        Task<IEnumerable<Developer>> GetAllAsync();
         #endregion
     }
 }

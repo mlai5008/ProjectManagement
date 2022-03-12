@@ -1,0 +1,5 @@
+https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-express-localdb?redirectedfrom=MSDN&view=sql-server-ver15
+
+
+
+https://code-maze.com/migrations-and-seed-data-efcore/

@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProjectManagement.DataAccess.Configurations;
 using ProjectManagement.Domain.Models;
 
 namespace ProjectManagement.DataAccess.Context
 {
-    public class ProjectManagementDbContext : DbContext
+    public sealed class ProjectManagementDbContext : DbContext
     {
         #region Field
         private const string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=ProjectManagement;Integrated Security=True"; 
@@ -11,14 +12,16 @@ namespace ProjectManagement.DataAccess.Context
 
         #region Ctor
         public ProjectManagementDbContext()
-        { }
+        {
+            Database.Migrate();
+        }
 
         public ProjectManagementDbContext(DbContextOptions<ProjectManagementDbContext> options) : base(options)
         { } 
         #endregion
 
         #region Properties
-        public virtual DbSet<Developer> Developers { get; set; }
+        public DbSet<Developer> Developers { get; set; }
         #endregion
 
         #region Methods
@@ -28,6 +31,12 @@ namespace ProjectManagement.DataAccess.Context
             {
                 optionsBuilder.UseSqlServer(ConnectionString);
             }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new DeveloperConfiguration());
+            base.OnModelCreating(modelBuilder);
         }
         #endregion
     }
