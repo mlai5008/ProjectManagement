@@ -1,4 +1,4 @@
-﻿namespace ProjectManagement.UI.Constants
+﻿namespace ProjectManagement.Infrastructure.Constants
 {
     public class ConfigFilePathConstants
     {

@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
-using ProjectManagement.UI.Constants;
-using ProjectManagement.UI.Services.Interfaces;
+using ProjectManagement.Infrastructure.Constants;
+using ProjectManagement.Infrastructure.Services.Interfaces;
 
-namespace ProjectManagement.UI.Services
+namespace ProjectManagement.Infrastructure.Services
 {
     public class ConfigSettingsService : IConfigSettingsService
     {
         #region Field
         private readonly IConfigurationBuilder _configurationBuilder;
+        private string _connectionString = string.Empty;
         #endregion
 
         #region Ctor
@@ -20,9 +21,14 @@ namespace ProjectManagement.UI.Services
         #region Methods
         public string GetConnectionString()
         {
+            return string.IsNullOrWhiteSpace(_connectionString) ? BuilderConnectionString() : _connectionString;
+        }
+
+        private string BuilderConnectionString()
+        {
             IConfiguration configuration = _configurationBuilder.AddJsonFile(ConfigFilePathConstants.AppSettingsConfigFile).Build();
-            return configuration.GetConnectionString(ConfigSettingNameConstants.AppSettingsConfigName);
-        } 
+            return _connectionString = configuration.GetConnectionString(ConfigSettingNameConstants.AppSettingsConfigName);
+        }
         #endregion
     }
 }

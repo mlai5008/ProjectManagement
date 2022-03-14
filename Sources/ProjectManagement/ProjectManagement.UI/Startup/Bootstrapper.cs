@@ -1,5 +1,8 @@
 ﻿using Autofac;
 using Microsoft.Extensions.Configuration;
+using ProjectManagement.DataAccess.Context;
+using ProjectManagement.Infrastructure.Services;
+using ProjectManagement.Infrastructure.Services.Interfaces;
 using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using ProjectManagement.UI.ViewModels;
@@ -16,6 +19,7 @@ namespace ProjectManagement.UI.Startup
 
             builder.RegisterType<MainWindow>().AsSelf().SingleInstance();
             builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
+            builder.RegisterType<ProjectManagementDbContext>().AsSelf();
             builder.RegisterType<DeveloperDataService>().As<IDeveloperDataService>().SingleInstance();
             builder.RegisterType<ConfigSettingsService>().As<IConfigSettingsService>().SingleInstance();
             builder.Register(_ => new ConfigurationBuilder()).As<IConfigurationBuilder>().SingleInstance();

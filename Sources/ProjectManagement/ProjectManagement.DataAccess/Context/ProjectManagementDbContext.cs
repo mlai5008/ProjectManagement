@@ -1,18 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProjectManagement.DataAccess.Configurations;
 using ProjectManagement.Domain.Models;
+using ProjectManagement.Infrastructure.Services.Interfaces;
 
 namespace ProjectManagement.DataAccess.Context
 {
     public sealed class ProjectManagementDbContext : DbContext
     {
         #region Field
-        private const string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=ProjectManagement;Integrated Security=True"; 
+        private readonly IConfigSettingsService _configSettingsService;
         #endregion
 
         #region Ctor
-        public ProjectManagementDbContext()
+        public ProjectManagementDbContext(IConfigSettingsService configSettingsService)
         {
+            _configSettingsService = configSettingsService;
             Database.Migrate();
         }
 
@@ -29,7 +31,7 @@ namespace ProjectManagement.DataAccess.Context
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(ConnectionString);
+                optionsBuilder.UseSqlServer(_configSettingsService.GetConnectionString());
             }
         }
 

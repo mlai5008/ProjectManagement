@@ -8,12 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ProjectManagement.DataAccess\ProjectManagement.DataAccess.csproj" />
     <ProjectReference Include="..\ProjectManagement.Domain\ProjectManagement.Domain.csproj" />
+    <ProjectReference Include="..\ProjectManagement.Infrastructure\ProjectManagement.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

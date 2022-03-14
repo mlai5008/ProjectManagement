@@ -1,4 +1,4 @@
-﻿namespace ProjectManagement.UI.Services.Interfaces
+﻿namespace ProjectManagement.Infrastructure.Services.Interfaces
 {
     public interface IConfigSettingsService
     {
