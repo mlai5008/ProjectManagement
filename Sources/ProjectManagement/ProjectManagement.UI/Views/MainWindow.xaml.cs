@@ -10,25 +10,21 @@ namespace ProjectManagement.UI.Views
     /// </summary>
     public partial class MainWindow : Window
     {
-        #region Fields
-        private readonly MainViewModel _mainViewModels; 
-        #endregion
-
         #region Ctor
         public MainWindow(MainViewModel mainViewModels)
         {
             InitializeComponent();
-            DataContext = _mainViewModels = mainViewModels;
-            Task.Run(LoadDataAsync);
+            DataContext = mainViewModels;
+            Task.Run(() => LoadDataAsync(mainViewModels));
         }
         #endregion
 
         #region Methods
-        public Task LoadDataAsync()
+        public Task LoadDataAsync(MainViewModel mainViewModels)
         {
             try
             {
-                Task.Run(_mainViewModels.LoadAsync);
+                Task.Run(mainViewModels.LoadAsync);
             }
             catch (Exception)
             {
