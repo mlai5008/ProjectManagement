@@ -1,13 +1,13 @@
 ﻿using ProjectManagement.Domain.Models;
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Interfaces
 {
-    public interface IDeveloperDataService
+    public interface IDeveloperLookupDataService
     {
         #region Methods
-        Task<Developer> GetByIdAsync(Guid developerId);
+        Task<IEnumerable<LookupItem>> GetDeveloperLookupAsync(); 
         #endregion
     }
 }
