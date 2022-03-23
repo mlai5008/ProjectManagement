@@ -8,6 +8,7 @@ namespace ProjectManagement.UI.Services.Interfaces
     {
         #region Methods
         Task<Developer> GetByIdAsync(Guid developerId);
+        Task SaveAsync(Developer developer);
         #endregion
     }
 }

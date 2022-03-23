@@ -1,4 +1,5 @@
 ﻿using Prism.Events;
+using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
@@ -6,6 +7,7 @@ using ProjectManagement.UI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -16,7 +18,7 @@ namespace ProjectManagement.UI.ViewModels
         #region Fields
         private readonly IDeveloperLookupDataService _developerLookupDataService;
         private readonly IEventAggregator _eventAggregator;
-        private LookupItem _selectedDeveloper;
+        private NavigationItemViewModel _selectedDeveloper;
         #endregion
 
         #region Ctor
@@ -24,14 +26,15 @@ namespace ProjectManagement.UI.ViewModels
         {
             _developerLookupDataService = developerLookupDataService;
             _eventAggregator = eventAggregator;
-            LookupDevelopers = new ObservableCollection<LookupItem>();
+            LookupDevelopers = new ObservableCollection<NavigationItemViewModel>();
+            _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Subscribe(AfterDeveloperSaved);
         }
         #endregion
 
         #region Properties
-        public ObservableCollection<LookupItem> LookupDevelopers { get; }
+        public ObservableCollection<NavigationItemViewModel> LookupDevelopers { get; }
 
-        public LookupItem SelectedDeveloper
+        public NavigationItemViewModel SelectedDeveloper
         {
             get => _selectedDeveloper;
             set
@@ -57,7 +60,7 @@ namespace ProjectManagement.UI.ViewModels
                     LookupDevelopers.Clear();
                     foreach (LookupItem item in lookupDevelopers)
                     {
-                        LookupDevelopers.Add(item);
+                        LookupDevelopers.Add(new NavigationItemViewModel(item.Id, item.DisplayMember));
                     }
                 });
                 
@@ -66,7 +69,13 @@ namespace ProjectManagement.UI.ViewModels
             {
                 throw;
             }
-        } 
+        }
+
+        private void AfterDeveloperSaved(AfterDeveloperSavedEventArg developer)
+        {
+            NavigationItemViewModel lookupItem = LookupDevelopers.Single(d => d.Id == developer.Id);
+            lookupItem.DisplayMember = developer.DisplayMember;
+        }
         #endregion
     }
 }

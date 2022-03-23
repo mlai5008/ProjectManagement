@@ -1,10 +1,13 @@
-﻿using Prism.Events;
+﻿using Prism.Commands;
+using Prism.Events;
+using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
 using ProjectManagement.UI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -12,6 +15,7 @@ namespace ProjectManagement.UI.ViewModels
     {
         #region Fields
         private readonly IDeveloperDataService _developerDataService;
+        private readonly IEventAggregator _eventAggregator;
         private Developer _developer;
         #endregion
 
@@ -19,7 +23,9 @@ namespace ProjectManagement.UI.ViewModels
         public DeveloperDetailViewModel(IDeveloperDataService developerDataService, IEventAggregator eventAggregator)
         {
             _developerDataService = developerDataService;
-            eventAggregator.GetEvent<OpenDeveloperDetailViewModelEvent>().Subscribe(OnOpenDeveloperDetailView);
+            _eventAggregator = eventAggregator;
+            _eventAggregator.GetEvent<OpenDeveloperDetailViewModelEvent>().Subscribe(OnOpenDeveloperDetailView);
+            SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
         }
         #endregion
 
@@ -33,18 +39,35 @@ namespace ProjectManagement.UI.ViewModels
                 OnPropertyChanged();
             }
         }
+
+        public ICommand SaveCommand { get; }
         #endregion
 
         #region Methods
+        public async Task LoadAsync(Guid developerId)
+        {
+            Developer = await _developerDataService.GetByIdAsync(developerId);
+        }
+
         private void OnOpenDeveloperDetailView(Guid developerId)
         {
             Task.Run(async () => { await LoadAsync(developerId); });
         }
 
-        public async Task LoadAsync(Guid developerId)
+        private async void OnSaveExecute()
         {
-            Developer = await _developerDataService.GetByIdAsync(developerId);
-        } 
+            await _developerDataService.SaveAsync(Developer);
+            _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Publish(new AfterDeveloperSavedEventArg()
+            {
+                Id = Developer.Id,
+                DisplayMember = $"{Developer.FirstName} {Developer.LastName}"
+            });
+        }
+
+        private bool OnSaveCanExecute()
+        {
+            return true;
+        }
         #endregion
     }
 }

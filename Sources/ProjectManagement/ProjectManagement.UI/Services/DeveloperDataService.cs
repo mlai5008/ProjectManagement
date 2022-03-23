@@ -26,6 +26,14 @@ namespace ProjectManagement.UI.Services
             await using ProjectManagementDbContext dbContext = _dbContextCreator();
             return await dbContext.Developers.AsNoTracking().SingleAsync(d => d.Id == developerId);
         }
+
+        public async Task SaveAsync(Developer developer)
+        {
+            await using ProjectManagementDbContext dbContext = _dbContextCreator();
+            dbContext.Developers.Attach(developer);
+            dbContext.Entry(developer).State = EntityState.Modified;
+            await dbContext.SaveChangesAsync();
+        }
         #endregion
     }
 }
