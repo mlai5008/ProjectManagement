@@ -2,6 +2,7 @@
 using ProjectManagement.UI.Startup;
 using ProjectManagement.UI.Views;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace ProjectManagement.UI
 {
@@ -17,6 +18,12 @@ namespace ProjectManagement.UI
             IContainer container = bootstrapper.Bootstrap();
             MainWindow mainWindow = container.Resolve<MainWindow>();
             mainWindow.Show();
+        }
+
+        private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            MessageBox.Show("Unexpected error occured.", "Unexpected error");
+            e.Handled = true;
         }
         #endregion
     }

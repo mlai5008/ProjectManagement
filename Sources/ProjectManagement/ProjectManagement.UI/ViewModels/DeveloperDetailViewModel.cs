@@ -5,6 +5,7 @@ using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
 using ProjectManagement.UI.Services.Interfaces;
+using ProjectManagement.UI.Wrapper;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -16,7 +17,7 @@ namespace ProjectManagement.UI.ViewModels
         #region Fields
         private readonly IDeveloperDataService _developerDataService;
         private readonly IEventAggregator _eventAggregator;
-        private Developer _developer;
+        private DeveloperWrapper _developer;
         #endregion
 
         #region Ctor
@@ -30,7 +31,7 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Properties
-        public Developer Developer
+        public DeveloperWrapper Developer
         {
             get => _developer;
             set
@@ -46,7 +47,16 @@ namespace ProjectManagement.UI.ViewModels
         #region Methods
         public async Task LoadAsync(Guid developerId)
         {
-            Developer = await _developerDataService.GetByIdAsync(developerId);
+            Developer developer = await _developerDataService.GetByIdAsync(developerId);
+            Developer = new DeveloperWrapper(developer);
+            Developer.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Developer.HasErrors))
+                {
+                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                }
+            };
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
 
         private void OnOpenDeveloperDetailView(Guid developerId)
@@ -56,7 +66,7 @@ namespace ProjectManagement.UI.ViewModels
 
         private async void OnSaveExecute()
         {
-            await _developerDataService.SaveAsync(Developer);
+            await _developerDataService.SaveAsync(Developer.Model);
             _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Publish(new AfterDeveloperSavedEventArg()
             {
                 Id = Developer.Id,
@@ -66,7 +76,7 @@ namespace ProjectManagement.UI.ViewModels
 
         private bool OnSaveCanExecute()
         {
-            return true;
+            return Developer != null && !Developer.HasErrors;
         }
         #endregion
     }
