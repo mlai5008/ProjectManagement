@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ProjectManagement.UI.Services
+namespace ProjectManagement.UI.Services.Lookups
 {
     public class DeveloperLookupDataService : IDeveloperLookupDataService
     {

@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Interfaces
 {
-    public interface IDeveloperDataService
+    public interface IDeveloperRepository
     {
         #region Methods
         Task<Developer> GetByIdAsync(Guid developerId);
-        Task SaveAsync(Developer developer);
+        Task SaveAsync();
+        bool HasChanges();
         #endregion
     }
 }

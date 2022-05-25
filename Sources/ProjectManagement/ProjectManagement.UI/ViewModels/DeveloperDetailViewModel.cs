@@ -15,17 +15,18 @@ namespace ProjectManagement.UI.ViewModels
     public class DeveloperDetailViewModel : ViewModelBase, IDeveloperDetailViewModel
     {
         #region Fields
-        private readonly IDeveloperDataService _developerDataService;
+        private readonly IDeveloperRepository _developerRepository;
         private readonly IEventAggregator _eventAggregator;
         private DeveloperWrapper _developer;
+        private bool _hasChanges;
         #endregion
 
         #region Ctor
-        public DeveloperDetailViewModel(IDeveloperDataService developerDataService, IEventAggregator eventAggregator)
+        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator)
         {
-            _developerDataService = developerDataService;
+            _developerRepository = developerRepository;
             _eventAggregator = eventAggregator;
-            _eventAggregator.GetEvent<OpenDeveloperDetailViewModelEvent>().Subscribe(OnOpenDeveloperDetailView);
+            
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
         }
         #endregion
@@ -41,16 +42,36 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
-        public ICommand SaveCommand { get; }
+        public bool HasChanges
+        {
+            get => _hasChanges;
+            set
+            {
+                if (_hasChanges != value)
+                {
+                    _hasChanges = value;
+                    OnPropertyChanged();
+                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+        #endregion
+
+        #region Commands
+        public ICommand SaveCommand { get; } 
         #endregion
 
         #region Methods
         public async Task LoadAsync(Guid developerId)
         {
-            Developer developer = await _developerDataService.GetByIdAsync(developerId);
+            Developer developer = await _developerRepository.GetByIdAsync(developerId);
             Developer = new DeveloperWrapper(developer);
             Developer.PropertyChanged += (s, e) =>
             {
+                if (!HasChanges)
+                {
+                    HasChanges = _developerRepository.HasChanges();
+                }
                 if (e.PropertyName == nameof(Developer.HasErrors))
                 {
                     ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
@@ -59,14 +80,10 @@ namespace ProjectManagement.UI.ViewModels
             ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
 
-        private void OnOpenDeveloperDetailView(Guid developerId)
-        {
-            Task.Run(async () => { await LoadAsync(developerId); });
-        }
-
         private async void OnSaveExecute()
         {
-            await _developerDataService.SaveAsync(Developer.Model);
+            await _developerRepository.SaveAsync();
+            HasChanges = _developerRepository.HasChanges();
             _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Publish(new AfterDeveloperSavedEventArg()
             {
                 Id = Developer.Id,
@@ -76,7 +93,7 @@ namespace ProjectManagement.UI.ViewModels
 
         private bool OnSaveCanExecute()
         {
-            return Developer != null && !Developer.HasErrors;
+            return Developer != null && !Developer.HasErrors && HasChanges;
         }
         #endregion
     }

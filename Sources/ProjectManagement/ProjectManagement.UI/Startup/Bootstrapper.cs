@@ -7,6 +7,8 @@ using ProjectManagement.Infrastructure.Services;
 using ProjectManagement.Infrastructure.Services.Interfaces;
 using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
+using ProjectManagement.UI.Services.Lookups;
+using ProjectManagement.UI.Services.Repositories;
 using ProjectManagement.UI.ViewModels;
 using ProjectManagement.UI.Views;
 
@@ -30,14 +32,14 @@ namespace ProjectManagement.UI.Startup
 
         private void RegisterWindows(ContainerBuilder builder)
         {
-            builder.RegisterType<MainWindow>().AsSelf().SingleInstance();
+            builder.RegisterType<MainWindow>().AsSelf();
         }
 
         private void RegisterViewModels(ContainerBuilder builder)
         {
-            builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
-            builder.RegisterType(typeof(NavigationViewModel)).As(typeof(INavigationViewModel)).SingleInstance();
-            builder.RegisterType<DeveloperDetailViewModel>().As<IDeveloperDetailViewModel>().SingleInstance();
+            builder.RegisterType<MainViewModel>().AsSelf();
+            builder.RegisterType(typeof(NavigationViewModel)).As(typeof(INavigationViewModel));
+            builder.RegisterType<DeveloperDetailViewModel>().As<IDeveloperDetailViewModel>();
         }
 
         private void RegisterDbContexts(ContainerBuilder builder)
@@ -48,8 +50,9 @@ namespace ProjectManagement.UI.Startup
         private void RegisterServices(ContainerBuilder builder)
         {
             builder.RegisterType<ConfigSettingsService>().As<IConfigSettingsService>().SingleInstance();
-            builder.RegisterType<DeveloperDataService>().As<IDeveloperDataService>().SingleInstance();
-            builder.RegisterType<DeveloperLookupDataService>().As<IDeveloperLookupDataService>().SingleInstance();
+            builder.RegisterType<DeveloperRepository>().As<IDeveloperRepository>();
+            builder.RegisterType<DeveloperLookupDataService>().AsImplementedInterfaces();
+            builder.RegisterType<MessageDialogService>().As<IMessageDialogService>();
         }
 
         private void RegisterTools(ContainerBuilder builder)

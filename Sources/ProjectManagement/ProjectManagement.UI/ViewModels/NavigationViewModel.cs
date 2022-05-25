@@ -18,7 +18,6 @@ namespace ProjectManagement.UI.ViewModels
         #region Fields
         private readonly IDeveloperLookupDataService _developerLookupDataService;
         private readonly IEventAggregator _eventAggregator;
-        private NavigationItemViewModel _selectedDeveloper;
         #endregion
 
         #region Ctor
@@ -33,20 +32,6 @@ namespace ProjectManagement.UI.ViewModels
 
         #region Properties
         public ObservableCollection<NavigationItemViewModel> LookupDevelopers { get; }
-
-        public NavigationItemViewModel SelectedDeveloper
-        {
-            get => _selectedDeveloper;
-            set
-            {
-                _selectedDeveloper = value;
-                OnPropertyChanged();
-                if (_selectedDeveloper != null)
-                {
-                    _eventAggregator.GetEvent<OpenDeveloperDetailViewModelEvent>().Publish(_selectedDeveloper.Id);
-                }
-            }
-        }
         #endregion
 
         #region Methods
@@ -60,7 +45,7 @@ namespace ProjectManagement.UI.ViewModels
                     LookupDevelopers.Clear();
                     foreach (LookupItem item in lookupDevelopers)
                     {
-                        LookupDevelopers.Add(new NavigationItemViewModel(item.Id, item.DisplayMember));
+                        LookupDevelopers.Add(new NavigationItemViewModel(item.Id, item.DisplayMember, _eventAggregator));
                     }
                 });
                 
