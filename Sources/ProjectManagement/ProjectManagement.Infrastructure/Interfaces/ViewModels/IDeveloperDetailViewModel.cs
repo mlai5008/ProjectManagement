@@ -10,7 +10,7 @@ namespace ProjectManagement.Infrastructure.Interfaces.ViewModels
         #endregion
 
         #region Methods
-        Task LoadAsync(Guid developerId);
+        Task LoadAsync(Guid? developerId);
         #endregion
     }
 }

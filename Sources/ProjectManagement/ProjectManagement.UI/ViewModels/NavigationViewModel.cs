@@ -27,6 +27,7 @@ namespace ProjectManagement.UI.ViewModels
             _eventAggregator = eventAggregator;
             LookupDevelopers = new ObservableCollection<NavigationItemViewModel>();
             _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Subscribe(AfterDeveloperSaved);
+            _eventAggregator.GetEvent<AfterDeveloperDeletedEvent>().Subscribe(AfterDeveloperDeleted);
         }
         #endregion
 
@@ -58,8 +59,24 @@ namespace ProjectManagement.UI.ViewModels
 
         private void AfterDeveloperSaved(AfterDeveloperSavedEventArg developer)
         {
-            NavigationItemViewModel lookupItem = LookupDevelopers.Single(d => d.Id == developer.Id);
-            lookupItem.DisplayMember = developer.DisplayMember;
+            NavigationItemViewModel lookupItem = LookupDevelopers.SingleOrDefault(d => d.Id == developer.Id);
+            if (lookupItem == null)
+            {
+                LookupDevelopers.Add(new NavigationItemViewModel(developer.Id, developer.DisplayMember, _eventAggregator));
+            }
+            else
+            {
+                lookupItem.DisplayMember = developer.DisplayMember;
+            }
+        }
+
+        private void AfterDeveloperDeleted(Guid developerId)
+        {
+            NavigationItemViewModel developer = LookupDevelopers.SingleOrDefault(d => d.Id == developerId);
+            if (developer != null)
+            {
+                LookupDevelopers.Remove(developer);
+            }
         }
         #endregion
     }

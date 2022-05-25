@@ -35,6 +35,16 @@ namespace ProjectManagement.UI.Services.Repositories
         {
             return _dbContext.ChangeTracker.HasChanges();
         }
+
+        public void Add(Developer developer)
+        {
+            _dbContext.Developers.Add(developer);
+        }
+
+        public void Remove(Developer developer)
+        {
+            _dbContext.Developers.Remove(developer);
+        }
         #endregion
     }
 }

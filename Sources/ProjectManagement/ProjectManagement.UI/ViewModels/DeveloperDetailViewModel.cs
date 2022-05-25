@@ -4,6 +4,7 @@ using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
+using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using ProjectManagement.UI.Wrapper;
 using System;
@@ -17,17 +18,20 @@ namespace ProjectManagement.UI.ViewModels
         #region Fields
         private readonly IDeveloperRepository _developerRepository;
         private readonly IEventAggregator _eventAggregator;
+        private readonly IMessageDialogService _messageDialogService;
         private DeveloperWrapper _developer;
         private bool _hasChanges;
         #endregion
 
         #region Ctor
-        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator)
+        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService)
         {
             _developerRepository = developerRepository;
             _eventAggregator = eventAggregator;
-            
+            _messageDialogService = messageDialogService;
+
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
+            DeleteCommand = new DelegateCommand(OnDeleteExecute);
         }
         #endregion
 
@@ -58,13 +62,14 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Commands
-        public ICommand SaveCommand { get; } 
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
         #endregion
 
         #region Methods
-        public async Task LoadAsync(Guid developerId)
+        public async Task LoadAsync(Guid? developerId)
         {
-            Developer developer = await _developerRepository.GetByIdAsync(developerId);
+            Developer developer = developerId.HasValue ? await _developerRepository.GetByIdAsync(developerId.Value) : CreateNewDeveloper();
             Developer = new DeveloperWrapper(developer);
             Developer.PropertyChanged += (s, e) =>
             {
@@ -78,6 +83,13 @@ namespace ProjectManagement.UI.ViewModels
                 }
             };
             ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+
+            if (Developer.Id == Guid.Empty)
+            {
+                //TODO: trigger to validation
+                Developer.FirstName = string.Empty;
+                Developer.LastName = string.Empty;
+            }
         }
 
         private async void OnSaveExecute()
@@ -94,6 +106,24 @@ namespace ProjectManagement.UI.ViewModels
         private bool OnSaveCanExecute()
         {
             return Developer != null && !Developer.HasErrors && HasChanges;
+        }
+
+        private async void OnDeleteExecute()
+        {
+            MessageDialogResult result = _messageDialogService.ShowOkCancelDialog($"Do you really wont to delete the developer {Developer.FirstName} {Developer.LastName}?", "Question");
+            if (result == MessageDialogResult.Ok)
+            {
+                _developerRepository.Remove(Developer.Model);
+                await _developerRepository.SaveAsync();
+                _eventAggregator.GetEvent<AfterDeveloperDeletedEvent>().Publish(Developer.Id);
+            }
+        }
+
+        private Developer CreateNewDeveloper()
+        {
+            Developer developer = new Developer();
+            _developerRepository.Add(developer);
+            return developer;
         }
         #endregion
     }

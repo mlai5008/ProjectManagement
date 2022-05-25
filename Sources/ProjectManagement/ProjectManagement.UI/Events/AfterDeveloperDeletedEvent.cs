@@ -3,6 +3,6 @@ using System;
 
 namespace ProjectManagement.UI.Events
 {
-    public class OpenDeveloperDetailViewModelEvent : PubSubEvent<Guid?>
+    public class AfterDeveloperDeletedEvent : PubSubEvent<Guid>
     { }
 }

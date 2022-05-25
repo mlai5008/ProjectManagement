@@ -10,6 +10,8 @@ namespace ProjectManagement.UI.Services.Interfaces
         Task<Developer> GetByIdAsync(Guid developerId);
         Task SaveAsync();
         bool HasChanges();
+        void Add(Developer developer);
+        void Remove(Developer developer);
         #endregion
     }
 }
