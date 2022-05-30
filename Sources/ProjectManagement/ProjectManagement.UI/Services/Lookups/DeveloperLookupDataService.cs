@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Lookups
 {
-    public class DeveloperLookupDataService : IDeveloperLookupDataService
+    public class DeveloperLookupDataService : IDeveloperLookupDataService, IProgrammingLanguageLookupDataService
     {
         #region Fields
         private readonly Func<ProjectManagementDbContext> _dbContextCreator;
@@ -31,7 +31,17 @@ namespace ProjectManagement.UI.Services.Lookups
                 Id = d.Id,
                 DisplayMember = $"{d.FirstName} {d.LastName}"
             }).ToListAsync();
-        } 
+        }
+
+        public async Task<IEnumerable<LookupItem>> GetProgrammingLanguageLookupAsync()
+        {
+            await using ProjectManagementDbContext dbContext = _dbContextCreator();
+            return await dbContext.ProgrammingLanguages.AsNoTracking().Select(d => new LookupItem()
+            {
+                Id = d.Id,
+                DisplayMember = $"{d.Name}"
+            }).ToListAsync();
+        }
         #endregion
     }
 }

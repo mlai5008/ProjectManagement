@@ -8,6 +8,8 @@ using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using ProjectManagement.UI.Wrapper;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -19,19 +21,23 @@ namespace ProjectManagement.UI.ViewModels
         private readonly IDeveloperRepository _developerRepository;
         private readonly IEventAggregator _eventAggregator;
         private readonly IMessageDialogService _messageDialogService;
+        private readonly IProgrammingLanguageLookupDataService _programmingLanguageLookupDataService;
         private DeveloperWrapper _developer;
         private bool _hasChanges;
         #endregion
 
         #region Ctor
-        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService)
+        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService, IProgrammingLanguageLookupDataService programmingLanguageLookupDataService)
         {
             _developerRepository = developerRepository;
             _eventAggregator = eventAggregator;
             _messageDialogService = messageDialogService;
+            _programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
             DeleteCommand = new DelegateCommand(OnDeleteExecute);
+
+            ProgrammingLanguages = new ObservableCollection<LookupItem>();
         }
         #endregion
 
@@ -59,6 +65,8 @@ namespace ProjectManagement.UI.ViewModels
                 }
             }
         }
+
+        public ObservableCollection<LookupItem> ProgrammingLanguages { get; }
         #endregion
 
         #region Commands
@@ -70,6 +78,14 @@ namespace ProjectManagement.UI.ViewModels
         public async Task LoadAsync(Guid? developerId)
         {
             Developer developer = developerId.HasValue ? await _developerRepository.GetByIdAsync(developerId.Value) : CreateNewDeveloper();
+            
+            InitializeDeveloper(developer);
+
+            await LoadProgrammingLanguagesLookupAsync();
+        }
+
+        private void InitializeDeveloper(Developer developer)
+        {
             Developer = new DeveloperWrapper(developer);
             Developer.PropertyChanged += (s, e) =>
             {
@@ -77,18 +93,30 @@ namespace ProjectManagement.UI.ViewModels
                 {
                     HasChanges = _developerRepository.HasChanges();
                 }
+
                 if (e.PropertyName == nameof(Developer.HasErrors))
                 {
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                    ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
                 }
             };
-            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
 
             if (Developer.Id == Guid.Empty)
             {
                 //TODO: trigger to validation
                 Developer.FirstName = string.Empty;
                 Developer.LastName = string.Empty;
+            }
+        }
+
+        private async Task LoadProgrammingLanguagesLookupAsync()
+        {
+            ProgrammingLanguages.Clear();
+            ProgrammingLanguages.Add(new NullLookupItem(){DisplayMember = " - "});
+            IEnumerable<LookupItem> lookup = await _programmingLanguageLookupDataService.GetProgrammingLanguageLookupAsync();
+            foreach (LookupItem lookupItem in lookup)
+            {
+                ProgrammingLanguages.Add(lookupItem);
             }
         }
 

@@ -5,13 +5,15 @@ using ProjectManagement.Infrastructure.Services.Interfaces;
 
 namespace ProjectManagement.DataAccess.Context
 {
-    public sealed class ProjectManagementDbContext : DbContext
+    public class ProjectManagementDbContext : DbContext
     {
         #region Field
         private readonly IConfigSettingsService _configSettingsService;
         #endregion
 
         #region Ctor
+        public ProjectManagementDbContext() { }
+
         public ProjectManagementDbContext(IConfigSettingsService configSettingsService)
         {
             _configSettingsService = configSettingsService;
@@ -23,7 +25,8 @@ namespace ProjectManagement.DataAccess.Context
         #endregion
 
         #region Properties
-        public DbSet<Developer> Developers { get; set; }
+        public virtual DbSet<Developer> Developers { get; set; }
+        public virtual DbSet<ProgrammingLanguage> ProgrammingLanguages { get; set; }
         #endregion
 
         #region Methods
@@ -32,12 +35,19 @@ namespace ProjectManagement.DataAccess.Context
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(_configSettingsService.GetConnectionString());
+
+                #region For MIGRATION
+                //TODO: only for migration
+                //optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ProjectManagement;Integrated Security=True"); 
+                #endregion
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfiguration(new DeveloperConfiguration());
+            modelBuilder.ApplyConfiguration(new DeveloperConfiguration())
+                .ApplyConfiguration(new ProgrammingLanguageConfiguration());
+
             base.OnModelCreating(modelBuilder);
         }
         #endregion

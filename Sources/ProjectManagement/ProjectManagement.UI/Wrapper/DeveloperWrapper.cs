@@ -31,6 +31,12 @@ namespace ProjectManagement.UI.Wrapper
             get => GetValue<string>();
             set => SetValue(value);
         }
+
+        public Guid? ProgrammingLanguageId
+        {
+            get => GetValue<Guid?>();
+            set => SetValue(value);
+        }
         #endregion
 
         #region Methods
