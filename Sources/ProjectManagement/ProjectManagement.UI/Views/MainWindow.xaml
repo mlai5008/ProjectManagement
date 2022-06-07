@@ -8,8 +8,8 @@
         xmlns:viewModels="clr-namespace:ProjectManagement.UI.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow"
-        Height="350"
-        Width="550"
+        Height="700"
+        Width="1000"
         FontSize="20"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>

@@ -23,7 +23,7 @@ namespace ProjectManagement.UI.Services.Repositories
         #region Methods
         public async Task<Developer> GetByIdAsync(Guid developerId)
         {
-            return await _dbContext.Developers.SingleAsync(d => d.Id == developerId);
+            return await _dbContext.Developers.Include(f => f.PhoneNumbers).SingleAsync(d => d.Id == developerId);
         }
 
         public async Task SaveAsync()
@@ -44,6 +44,11 @@ namespace ProjectManagement.UI.Services.Repositories
         public void Remove(Developer developer)
         {
             _dbContext.Developers.Remove(developer);
+        }
+
+        public void RemovePhoneNumber(DeveloperPhoneNumber model)
+        {
+            _dbContext.DeveloperPhoneNumbers.Remove(model);
         }
         #endregion
     }

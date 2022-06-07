@@ -27,6 +27,7 @@ namespace ProjectManagement.DataAccess.Context
         #region Properties
         public virtual DbSet<Developer> Developers { get; set; }
         public virtual DbSet<ProgrammingLanguage> ProgrammingLanguages { get; set; }
+        public virtual DbSet<DeveloperPhoneNumber> DeveloperPhoneNumbers { get; set; }
         #endregion
 
         #region Methods
@@ -38,7 +39,7 @@ namespace ProjectManagement.DataAccess.Context
 
                 #region For MIGRATION
                 //TODO: only for migration
-                //optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ProjectManagement;Integrated Security=True"); 
+                //optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ProjectManagement;Integrated Security=True");
                 #endregion
             }
         }
@@ -46,7 +47,8 @@ namespace ProjectManagement.DataAccess.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new DeveloperConfiguration())
-                .ApplyConfiguration(new ProgrammingLanguageConfiguration());
+                .ApplyConfiguration(new ProgrammingLanguageConfiguration())
+                .ApplyConfiguration(new DeveloperPhoneNumberConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

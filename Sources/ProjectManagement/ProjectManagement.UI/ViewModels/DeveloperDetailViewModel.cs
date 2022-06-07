@@ -10,6 +10,8 @@ using ProjectManagement.UI.Wrapper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -24,6 +26,7 @@ namespace ProjectManagement.UI.ViewModels
         private readonly IProgrammingLanguageLookupDataService _programmingLanguageLookupDataService;
         private DeveloperWrapper _developer;
         private bool _hasChanges;
+        private DeveloperPhoneNumberWrapper _selectedPhoneNumber;
         #endregion
 
         #region Ctor
@@ -36,8 +39,11 @@ namespace ProjectManagement.UI.ViewModels
 
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
             DeleteCommand = new DelegateCommand(OnDeleteExecute);
+            AddPhoneNumberCommand = new DelegateCommand(OnAddPhoneNumberExecute);
+            RemovePhoneNumberCommand = new DelegateCommand(OnRemovePhoneNumberExecute, OnRemovePhoneNumberCanExecute);
 
             ProgrammingLanguages = new ObservableCollection<LookupItem>();
+            PhoneNumbers = new ObservableCollection<DeveloperPhoneNumberWrapper>();
         }
         #endregion
 
@@ -66,12 +72,29 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
+        public DeveloperPhoneNumberWrapper SelectedPhoneNumber
+        {
+            get => _selectedPhoneNumber;
+            set
+            {
+                _selectedPhoneNumber = value;
+                OnPropertyChanged();
+                ((DelegateCommand)RemovePhoneNumberCommand).RaiseCanExecuteChanged();
+            }
+        }
+
         public ObservableCollection<LookupItem> ProgrammingLanguages { get; }
+        public ObservableCollection<DeveloperPhoneNumberWrapper> PhoneNumbers { get; }
         #endregion
 
         #region Commands
         public ICommand SaveCommand { get; }
+
         public ICommand DeleteCommand { get; }
+
+        public ICommand AddPhoneNumberCommand { get; }
+
+        public ICommand RemovePhoneNumberCommand { get; }
         #endregion
 
         #region Methods
@@ -80,6 +103,8 @@ namespace ProjectManagement.UI.ViewModels
             Developer developer = developerId.HasValue ? await _developerRepository.GetByIdAsync(developerId.Value) : CreateNewDeveloper();
             
             InitializeDeveloper(developer);
+
+            InitializeDeveloperPhoneNumbers(developer.PhoneNumbers);
 
             await LoadProgrammingLanguagesLookupAsync();
         }
@@ -109,6 +134,33 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
+        private void InitializeDeveloperPhoneNumbers(ICollection<DeveloperPhoneNumber> developerPhoneNumbers)
+        {
+            foreach (DeveloperPhoneNumberWrapper developerPhoneNumberWrapper in PhoneNumbers)
+            {
+                developerPhoneNumberWrapper.PropertyChanged -= DeveloperPhoneNumberWrapper_PropertyChanged;
+            }
+            PhoneNumbers.Clear();
+            foreach (DeveloperPhoneNumber developerPhoneNumber in developerPhoneNumbers)
+            {
+                DeveloperPhoneNumberWrapper developerPhoneNumberWrapper = new DeveloperPhoneNumberWrapper(developerPhoneNumber);
+                PhoneNumbers.Add(developerPhoneNumberWrapper);
+                developerPhoneNumberWrapper.PropertyChanged += DeveloperPhoneNumberWrapper_PropertyChanged;
+            }
+        }
+
+        private void DeveloperPhoneNumberWrapper_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (!HasChanges)
+            {
+                HasChanges = _developerRepository.HasChanges();
+            }
+            if (e.PropertyName == nameof(DeveloperPhoneNumberWrapper.HasErrors))
+            {
+                ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            }
+        }
+
         private async Task LoadProgrammingLanguagesLookupAsync()
         {
             ProgrammingLanguages.Clear();
@@ -133,7 +185,7 @@ namespace ProjectManagement.UI.ViewModels
 
         private bool OnSaveCanExecute()
         {
-            return Developer != null && !Developer.HasErrors && HasChanges;
+            return Developer != null && !Developer.HasErrors && PhoneNumbers.All(p => !p.HasErrors) && HasChanges;
         }
 
         private async void OnDeleteExecute()
@@ -152,6 +204,32 @@ namespace ProjectManagement.UI.ViewModels
             Developer developer = new Developer();
             _developerRepository.Add(developer);
             return developer;
+        }
+
+        private void OnAddPhoneNumberExecute()
+        {
+            DeveloperPhoneNumberWrapper newDeveloperPhoneNumberWrapper = new DeveloperPhoneNumberWrapper(new DeveloperPhoneNumber());
+            newDeveloperPhoneNumberWrapper.PropertyChanged += DeveloperPhoneNumberWrapper_PropertyChanged;
+            PhoneNumbers.Add(newDeveloperPhoneNumberWrapper);
+            Developer.Model.PhoneNumbers.Add(newDeveloperPhoneNumberWrapper.Model);
+            //TODO: trigger to validation
+            newDeveloperPhoneNumberWrapper.Number = string.Empty;
+        }
+
+        private void OnRemovePhoneNumberExecute()
+        {
+            SelectedPhoneNumber.PropertyChanged -= DeveloperPhoneNumberWrapper_PropertyChanged;
+            //Developer.Model.PhoneNumbers.Remove(SelectedPhoneNumber.Model);
+            _developerRepository.RemovePhoneNumber(SelectedPhoneNumber.Model);
+            PhoneNumbers.Remove(SelectedPhoneNumber);
+            SelectedPhoneNumber = null;
+            HasChanges = _developerRepository.HasChanges();
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+        }
+
+        private bool OnRemovePhoneNumberCanExecute()
+        {
+            return SelectedPhoneNumber != null;
         }
         #endregion
     }

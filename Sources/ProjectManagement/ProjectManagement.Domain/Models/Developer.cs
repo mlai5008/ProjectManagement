@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,6 +7,13 @@ namespace ProjectManagement.Domain.Models
 {
     public class Developer
     {
+        #region Ctor
+        public Developer()
+        {
+            PhoneNumbers = new List<DeveloperPhoneNumber>();
+        } 
+        #endregion
+
         #region Properties
         [Key, Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -27,6 +35,9 @@ namespace ProjectManagement.Domain.Models
         public Guid? ProgrammingLanguageId { get; set; }
         [ForeignKey(nameof(ProgrammingLanguageId))]
         public virtual ProgrammingLanguage FavoriteLanguage { get; set; }
+
+        [InverseProperty(nameof(DeveloperPhoneNumber.Developer))]
+        public virtual ICollection<DeveloperPhoneNumber> PhoneNumbers { get; set; }
         #endregion
     }
 }

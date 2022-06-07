@@ -12,6 +12,7 @@ namespace ProjectManagement.UI.Services.Interfaces
         bool HasChanges();
         void Add(Developer developer);
         void Remove(Developer developer);
+        void RemovePhoneNumber(DeveloperPhoneNumber model);
         #endregion
     }
 }
