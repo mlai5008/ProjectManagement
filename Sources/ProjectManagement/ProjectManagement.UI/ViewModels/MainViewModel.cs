@@ -7,6 +7,7 @@ using ProjectManagement.UI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ProjectManagement.Domain.EventArgs;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -16,7 +17,7 @@ namespace ProjectManagement.UI.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private readonly IMessageDialogService _messageDialogService;
         private readonly Func<IDeveloperDetailViewModel> _developerDetailViewModelCreator;
-        private IDeveloperDetailViewModel _developerDetailViewModel;
+        private IDetailViewModel _detailViewModel;
         #endregion
 
         #region Ctor
@@ -27,10 +28,10 @@ namespace ProjectManagement.UI.ViewModels
 
             _developerDetailViewModelCreator = developerDetailViewModelCreator;
 
-            _eventAggregator.GetEvent<OpenDeveloperDetailViewModelEvent>().Subscribe(OnOpenDeveloperDetailView);
-            _eventAggregator.GetEvent<AfterDeveloperDeletedEvent>().Subscribe(OnAfterDeveloperDeleted);
+            _eventAggregator.GetEvent<OpenDetailViewEvent>().Subscribe(OnOpenDetailView);
+            _eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnAfterDetailDeleted);
 
-            CreateNewDeveloperCommand = new DelegateCommand(OnCreateNewDeveloperExecute);
+            CreateNewDetailCommand = new DelegateCommand<Type>(OnCreateNewDetailExecute);
 
             NavigationViewModel = navigationViewModel;
         }
@@ -39,19 +40,19 @@ namespace ProjectManagement.UI.ViewModels
         #region Properties
         public INavigationViewModel NavigationViewModel { get; }
 
-        public IDeveloperDetailViewModel DeveloperDetailViewModel
+        public IDetailViewModel DetailViewModel
         {
-            get => _developerDetailViewModel;
+            get => _detailViewModel;
             private set
             {
-                _developerDetailViewModel = value;
+                _detailViewModel = value;
                 OnPropertyChanged();
             }
         }
         #endregion
 
         #region Commands
-        public ICommand CreateNewDeveloperCommand { get; } 
+        public ICommand CreateNewDetailCommand { get; } 
         #endregion
 
         #region Methods
@@ -60,9 +61,9 @@ namespace ProjectManagement.UI.ViewModels
             await NavigationViewModel.LoadAsync();
         }
 
-        private async void OnOpenDeveloperDetailView(Guid? developerId)
+        private async void OnOpenDetailView(OpenDetailViewEventArg arg)
         {
-            if (DeveloperDetailViewModel != null && DeveloperDetailViewModel.HasChanges)
+            if (DetailViewModel != null && DetailViewModel.HasChanges)
             {
                 MessageDialogResult result = _messageDialogService.ShowOkCancelDialog("You've made changes. Navigate away?", "Question");
                 if (result == MessageDialogResult.Cancel)
@@ -71,18 +72,24 @@ namespace ProjectManagement.UI.ViewModels
                 }
             }
 
-            DeveloperDetailViewModel = _developerDetailViewModelCreator();
-            await DeveloperDetailViewModel.LoadAsync(developerId);
+            switch (arg.ViewModelName)
+            {
+                case nameof(DeveloperDetailViewModel):
+                    DetailViewModel = _developerDetailViewModelCreator();
+                    break;
+            }
+            
+            await DetailViewModel.LoadAsync(arg.Id);
         }
 
-        private void OnAfterDeveloperDeleted(Guid developerId)
+        private void OnAfterDetailDeleted(AfterDetailDeletedEventArg arg)
         {
-            DeveloperDetailViewModel = null;
+            DetailViewModel = null;
         }
 
-        private void OnCreateNewDeveloperExecute()
+        private void OnCreateNewDetailExecute(Type viewModelType)
         {
-            OnOpenDeveloperDetailView(null);
+            OnOpenDetailView(new OpenDetailViewEventArg(){ViewModelName = viewModelType.Name});
         }
         #endregion
     }

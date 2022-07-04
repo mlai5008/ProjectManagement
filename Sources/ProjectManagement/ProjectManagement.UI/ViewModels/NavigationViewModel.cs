@@ -26,8 +26,8 @@ namespace ProjectManagement.UI.ViewModels
             _developerLookupDataService = developerLookupDataService;
             _eventAggregator = eventAggregator;
             LookupDevelopers = new ObservableCollection<NavigationItemViewModel>();
-            _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Subscribe(AfterDeveloperSaved);
-            _eventAggregator.GetEvent<AfterDeveloperDeletedEvent>().Subscribe(AfterDeveloperDeleted);
+            _eventAggregator.GetEvent<AfterDetailSavedEvent>().Subscribe(AfterDetailSaved);
+            _eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(AfterDetailDeleted);
         }
         #endregion
 
@@ -46,7 +46,7 @@ namespace ProjectManagement.UI.ViewModels
                     LookupDevelopers.Clear();
                     foreach (LookupItem item in lookupDevelopers)
                     {
-                        LookupDevelopers.Add(new NavigationItemViewModel(item.Id, item.DisplayMember, _eventAggregator));
+                        LookupDevelopers.Add(new NavigationItemViewModel(item.Id, item.DisplayMember, _eventAggregator, nameof(DeveloperDetailViewModel)));
                     }
                 });
                 
@@ -57,25 +57,35 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
-        private void AfterDeveloperSaved(AfterDeveloperSavedEventArg developer)
+        private void AfterDetailSaved(AfterDetailSavedEventArg arg)
         {
-            NavigationItemViewModel lookupItem = LookupDevelopers.SingleOrDefault(d => d.Id == developer.Id);
-            if (lookupItem == null)
+            switch (arg.ViewModelName)
             {
-                LookupDevelopers.Add(new NavigationItemViewModel(developer.Id, developer.DisplayMember, _eventAggregator));
-            }
-            else
-            {
-                lookupItem.DisplayMember = developer.DisplayMember;
+                case nameof(DeveloperDetailViewModel):
+                    NavigationItemViewModel lookupItem = LookupDevelopers.SingleOrDefault(d => d.Id == arg.Id);
+                    if (lookupItem == null)
+                    {
+                        LookupDevelopers.Add(new NavigationItemViewModel(arg.Id, arg.DisplayMember, _eventAggregator, nameof(DeveloperDetailViewModel)));
+                    }
+                    else
+                    {
+                        lookupItem.DisplayMember = arg.DisplayMember;
+                    }
+                    break;
             }
         }
 
-        private void AfterDeveloperDeleted(Guid developerId)
+        private void AfterDetailDeleted(AfterDetailDeletedEventArg arg)
         {
-            NavigationItemViewModel developer = LookupDevelopers.SingleOrDefault(d => d.Id == developerId);
-            if (developer != null)
+            switch (arg.ViewModelName)
             {
-                LookupDevelopers.Remove(developer);
+                case nameof(DeveloperDetailViewModel):
+                    NavigationItemViewModel developer = LookupDevelopers.SingleOrDefault(d => d.Id == arg.Id);
+                    if (developer != null)
+                    {
+                        LookupDevelopers.Remove(developer);
+                    }
+                    break;
             }
         }
         #endregion

@@ -28,10 +28,16 @@
         </Grid.ColumnDefinitions>
         <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" FontSize="20">
             <MenuItem Header="Create">
-                <MenuItem Header="New Developer" Command="{Binding CreateNewDeveloperCommand}"/>
+                <MenuItem Header="New Developer" 
+                          Command="{Binding CreateNewDetailCommand}"
+                          CommandParameter="{x:Type viewModels:DeveloperDetailViewModel}"/>
             </MenuItem>
         </Menu>
-        <view:NavigationView Grid.Row="1" Grid.Column="0" DataContext="{Binding Path=NavigationViewModel}"/>
-        <ContentControl Grid.Row="1" Grid.Column="1" Content="{Binding Path=DeveloperDetailViewModel}"/>
+        <view:NavigationView Grid.Row="1"
+                             Grid.Column="0"
+                             DataContext="{Binding Path=NavigationViewModel}"/>
+        <ContentControl Grid.Row="1"
+                        Grid.Column="1" 
+                        Content="{Binding Path=DetailViewModel}"/>
     </Grid>
 </Window>

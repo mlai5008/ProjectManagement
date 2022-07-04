@@ -3,6 +3,6 @@ using ProjectManagement.Domain.EventArgs;
 
 namespace ProjectManagement.UI.Events
 {
-    public class AfterDeveloperSavedEvent : PubSubEvent<AfterDeveloperSavedEventArg>
+    public class AfterDetailDeletedEvent : PubSubEvent<AfterDetailDeletedEventArg>
     { }
 }

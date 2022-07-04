@@ -17,11 +17,10 @@ using System.Windows.Input;
 
 namespace ProjectManagement.UI.ViewModels
 {
-    public class DeveloperDetailViewModel : ViewModelBase, IDeveloperDetailViewModel
+    public class DeveloperDetailViewModel : DetailViewModelBase, IDeveloperDetailViewModel
     {
         #region Fields
         private readonly IDeveloperRepository _developerRepository;
-        private readonly IEventAggregator _eventAggregator;
         private readonly IMessageDialogService _messageDialogService;
         private readonly IProgrammingLanguageLookupDataService _programmingLanguageLookupDataService;
         private DeveloperWrapper _developer;
@@ -30,15 +29,13 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Ctor
-        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService, IProgrammingLanguageLookupDataService programmingLanguageLookupDataService)
+        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService, IProgrammingLanguageLookupDataService programmingLanguageLookupDataService):base(eventAggregator)
         {
             _developerRepository = developerRepository;
-            _eventAggregator = eventAggregator;
             _messageDialogService = messageDialogService;
             _programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
-            SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
-            DeleteCommand = new DelegateCommand(OnDeleteExecute);
+            
             AddPhoneNumberCommand = new DelegateCommand(OnAddPhoneNumberExecute);
             RemovePhoneNumberCommand = new DelegateCommand(OnRemovePhoneNumberExecute, OnRemovePhoneNumberCanExecute);
 
@@ -58,19 +55,7 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
-        public bool HasChanges
-        {
-            get => _hasChanges;
-            set
-            {
-                if (_hasChanges != value)
-                {
-                    _hasChanges = value;
-                    OnPropertyChanged();
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
-                }
-            }
-        }
+        
 
         public DeveloperPhoneNumberWrapper SelectedPhoneNumber
         {
@@ -88,17 +73,13 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Commands
-        public ICommand SaveCommand { get; }
-
-        public ICommand DeleteCommand { get; }
-
         public ICommand AddPhoneNumberCommand { get; }
 
         public ICommand RemovePhoneNumberCommand { get; }
         #endregion
 
         #region Methods
-        public async Task LoadAsync(Guid? developerId)
+        public override async Task LoadAsync(Guid? developerId)
         {
             Developer developer = developerId.HasValue ? await _developerRepository.GetByIdAsync(developerId.Value) : CreateNewDeveloper();
             
@@ -172,30 +153,25 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
-        private async void OnSaveExecute()
+        protected override async void OnSaveExecute()
         {
             await _developerRepository.SaveAsync();
             HasChanges = _developerRepository.HasChanges();
-            _eventAggregator.GetEvent<AfterDeveloperSavedEvent>().Publish(new AfterDeveloperSavedEventArg()
-            {
-                Id = Developer.Id,
-                DisplayMember = $"{Developer.FirstName} {Developer.LastName}"
-            });
+            RaiseDetailSavedEvent(Developer.Id, $"{Developer.FirstName} {Developer.LastName}");
         }
-
-        private bool OnSaveCanExecute()
+        protected override bool OnSaveCanExecute()
         {
             return Developer != null && !Developer.HasErrors && PhoneNumbers.All(p => !p.HasErrors) && HasChanges;
         }
 
-        private async void OnDeleteExecute()
+        protected override async void OnDeleteExecute()
         {
             MessageDialogResult result = _messageDialogService.ShowOkCancelDialog($"Do you really wont to delete the developer {Developer.FirstName} {Developer.LastName}?", "Question");
             if (result == MessageDialogResult.Ok)
             {
                 _developerRepository.Remove(Developer.Model);
                 await _developerRepository.SaveAsync();
-                _eventAggregator.GetEvent<AfterDeveloperDeletedEvent>().Publish(Developer.Id);
+                RaiseDetailDeletedEvent(Developer.Id);
             }
         }
 
