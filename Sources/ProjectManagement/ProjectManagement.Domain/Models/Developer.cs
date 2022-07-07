@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,6 +12,7 @@ namespace ProjectManagement.Domain.Models
         public Developer()
         {
             PhoneNumbers = new List<DeveloperPhoneNumber>();
+            Meetings = new Collection<Meeting>();
         } 
         #endregion
 
@@ -38,6 +40,8 @@ namespace ProjectManagement.Domain.Models
 
         [InverseProperty(nameof(DeveloperPhoneNumber.Developer))]
         public virtual ICollection<DeveloperPhoneNumber> PhoneNumbers { get; set; }
+
+        public virtual ICollection<Meeting> Meetings { get; set; }
         #endregion
     }
 }

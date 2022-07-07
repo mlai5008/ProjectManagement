@@ -7,6 +7,7 @@ using ProjectManagement.UI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Autofac.Features.Indexed;
 using ProjectManagement.Domain.EventArgs;
 
 namespace ProjectManagement.UI.ViewModels
@@ -16,17 +17,17 @@ namespace ProjectManagement.UI.ViewModels
         #region Fields
         private readonly IEventAggregator _eventAggregator;
         private readonly IMessageDialogService _messageDialogService;
-        private readonly Func<IDeveloperDetailViewModel> _developerDetailViewModelCreator;
+        private readonly IIndex<string, IDetailViewModel> _detailViewModelCreator;
         private IDetailViewModel _detailViewModel;
         #endregion
 
         #region Ctor
-        public MainViewModel(INavigationViewModel navigationViewModel, Func<IDeveloperDetailViewModel> developerDetailViewModelCreator, IEventAggregator eventAggregator, IMessageDialogService messageDialogService)
+        public MainViewModel(INavigationViewModel navigationViewModel, IIndex<string, IDetailViewModel> detailViewModelCreator, IEventAggregator eventAggregator, IMessageDialogService messageDialogService)
         {
             _eventAggregator = eventAggregator;
             _messageDialogService = messageDialogService;
 
-            _developerDetailViewModelCreator = developerDetailViewModelCreator;
+            _detailViewModelCreator = detailViewModelCreator;
 
             _eventAggregator.GetEvent<OpenDetailViewEvent>().Subscribe(OnOpenDetailView);
             _eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnAfterDetailDeleted);
@@ -72,13 +73,8 @@ namespace ProjectManagement.UI.ViewModels
                 }
             }
 
-            switch (arg.ViewModelName)
-            {
-                case nameof(DeveloperDetailViewModel):
-                    DetailViewModel = _developerDetailViewModelCreator();
-                    break;
-            }
-            
+            DetailViewModel = _detailViewModelCreator[arg.ViewModelName];
+
             await DetailViewModel.LoadAsync(arg.Id);
         }
 

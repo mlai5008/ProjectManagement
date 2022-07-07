@@ -7,7 +7,7 @@
         xmlns:view="clr-namespace:ProjectManagement.UI.Views"
         xmlns:viewModels="clr-namespace:ProjectManagement.UI.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow"
+        Title="Project Management"
         Height="700"
         Width="1000"
         FontSize="20"
@@ -15,6 +15,9 @@
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewModels:DeveloperDetailViewModel}">
             <view:DeveloperDetailView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:MeetingDetailViewModel}">
+            <view:MeetingDetailView/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -31,6 +34,9 @@
                 <MenuItem Header="New Developer" 
                           Command="{Binding CreateNewDetailCommand}"
                           CommandParameter="{x:Type viewModels:DeveloperDetailViewModel}"/>
+                <MenuItem Header="New Meeting" 
+                          Command="{Binding CreateNewDetailCommand}"
+                          CommandParameter="{x:Type viewModels:MeetingDetailViewModel}"/>
             </MenuItem>
         </Menu>
         <view:NavigationView Grid.Row="1"

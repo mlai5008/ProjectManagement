@@ -28,6 +28,7 @@ namespace ProjectManagement.DataAccess.Context
         public virtual DbSet<Developer> Developers { get; set; }
         public virtual DbSet<ProgrammingLanguage> ProgrammingLanguages { get; set; }
         public virtual DbSet<DeveloperPhoneNumber> DeveloperPhoneNumbers { get; set; }
+        public virtual DbSet<Meeting> Meetings { get; set; }
         #endregion
 
         #region Methods
@@ -48,7 +49,8 @@ namespace ProjectManagement.DataAccess.Context
         {
             modelBuilder.ApplyConfiguration(new DeveloperConfiguration())
                 .ApplyConfiguration(new ProgrammingLanguageConfiguration())
-                .ApplyConfiguration(new DeveloperPhoneNumberConfiguration());
+                .ApplyConfiguration(new DeveloperPhoneNumberConfiguration())
+                .ApplyConfiguration(new MeetingConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

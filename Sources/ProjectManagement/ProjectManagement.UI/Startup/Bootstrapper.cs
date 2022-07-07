@@ -39,7 +39,8 @@ namespace ProjectManagement.UI.Startup
         {
             builder.RegisterType<MainViewModel>().AsSelf();
             builder.RegisterType(typeof(NavigationViewModel)).As(typeof(INavigationViewModel));
-            builder.RegisterType<DeveloperDetailViewModel>().As<IDeveloperDetailViewModel>();
+            builder.RegisterType<DeveloperDetailViewModel>().Keyed<IDetailViewModel>(nameof(DeveloperDetailViewModel));
+            builder.RegisterType<MeetingDetailViewModel>().Keyed<IDetailViewModel>(nameof(MeetingDetailViewModel));
         }
 
         private void RegisterDbContexts(ContainerBuilder builder)
@@ -51,6 +52,7 @@ namespace ProjectManagement.UI.Startup
         {
             builder.RegisterType<ConfigSettingsService>().As<IConfigSettingsService>().SingleInstance();
             builder.RegisterType<DeveloperRepository>().As<IDeveloperRepository>();
+            builder.RegisterType<MeetingRepository>().As<IMeetingRepository>();
             builder.RegisterType<DeveloperLookupDataService>().AsImplementedInterfaces();
             builder.RegisterType<MessageDialogService>().As<IMessageDialogService>();
         }
