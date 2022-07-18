@@ -10,7 +10,12 @@ namespace ProjectManagement.UI.Services
         {
             MessageBoxResult result = MessageBox.Show(text, title, MessageBoxButton.OKCancel);
             return result == MessageBoxResult.OK ? MessageDialogResult.Ok : MessageDialogResult.Cancel;
-        } 
+        }
+
+        public void ShowInfoDialog(string text)
+        {
+            MessageBox.Show(text, "Info");
+        }
         #endregion
     }
 }

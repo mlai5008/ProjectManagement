@@ -3,6 +3,7 @@ using ProjectManagement.DataAccess.Context;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.UI.Services.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Repositories
@@ -18,7 +19,12 @@ namespace ProjectManagement.UI.Services.Repositories
         public override async Task<Meeting> GetByIdAsync(Guid id)
         {
             return await DbContext.Meetings.Include(m => m.Developers).SingleAsync(i => i.Id == id);
-        } 
+        }
+
+        public async Task<List<Developer>> GetAllDevelopersAsync()
+        {
+            return await DbContext.Set<Developer>().ToListAsync();
+        }
         #endregion
     }
 }

@@ -55,8 +55,6 @@ namespace ProjectManagement.UI.ViewModels
             }
         }
 
-        
-
         public DeveloperPhoneNumberWrapper SelectedPhoneNumber
         {
             get => _selectedPhoneNumber;
@@ -166,6 +164,12 @@ namespace ProjectManagement.UI.ViewModels
 
         protected override async void OnDeleteExecute()
         {
+            if (await _developerRepository.HasMeetingsAsync(Developer.Id))
+            {
+                _messageDialogService.ShowInfoDialog($"{Developer.FirstName} {Developer.LastName} can't be deleted, as this friend is part of at least one meeting");
+                return;
+            }
+
             MessageDialogResult result = _messageDialogService.ShowOkCancelDialog($"Do you really wont to delete the developer {Developer.FirstName} {Developer.LastName}?", "Question");
             if (result == MessageDialogResult.Ok)
             {

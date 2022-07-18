@@ -3,6 +3,7 @@ using ProjectManagement.DataAccess.Context;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.UI.Services.Interfaces;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Repositories
@@ -23,6 +24,13 @@ namespace ProjectManagement.UI.Services.Repositories
         public void RemovePhoneNumber(DeveloperPhoneNumber model)
         {
             DbContext.DeveloperPhoneNumbers.Remove(model);
+        }
+
+        public async Task<bool> HasMeetingsAsync(Guid developerId)
+        {
+            return await DbContext.Meetings.AsNoTracking()
+                .Include(m => m.Developers)
+                .AnyAsync(m => m.Developers.Any(d => d.Id == developerId));
         }
         #endregion
     }
