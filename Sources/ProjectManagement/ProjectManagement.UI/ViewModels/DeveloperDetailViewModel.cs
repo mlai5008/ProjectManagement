@@ -1,9 +1,7 @@
 ﻿using Prism.Commands;
 using Prism.Events;
-using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
-using ProjectManagement.UI.Events;
 using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using ProjectManagement.UI.Wrapper;
@@ -21,18 +19,15 @@ namespace ProjectManagement.UI.ViewModels
     {
         #region Fields
         private readonly IDeveloperRepository _developerRepository;
-        private readonly IMessageDialogService _messageDialogService;
         private readonly IProgrammingLanguageLookupDataService _programmingLanguageLookupDataService;
         private DeveloperWrapper _developer;
-        private bool _hasChanges;
         private DeveloperPhoneNumberWrapper _selectedPhoneNumber;
         #endregion
 
         #region Ctor
-        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService, IProgrammingLanguageLookupDataService programmingLanguageLookupDataService):base(eventAggregator)
+        public DeveloperDetailViewModel(IDeveloperRepository developerRepository, IEventAggregator eventAggregator, IMessageDialogService messageDialogService, IProgrammingLanguageLookupDataService programmingLanguageLookupDataService):base(eventAggregator, messageDialogService)
         {
             _developerRepository = developerRepository;
-            _messageDialogService = messageDialogService;
             _programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
             
@@ -77,10 +72,12 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Methods
-        public override async Task LoadAsync(Guid? developerId)
+        public override async Task LoadAsync(Guid developerId)
         {
-            Developer developer = developerId.HasValue ? await _developerRepository.GetByIdAsync(developerId.Value) : CreateNewDeveloper();
-            
+            Developer developer = developerId != Guid.Empty ? await _developerRepository.GetByIdAsync(developerId) : CreateNewDeveloper();
+
+            Id = developerId;
+
             InitializeDeveloper(developer);
 
             InitializeDeveloperPhoneNumbers(developer.PhoneNumbers);
@@ -102,6 +99,10 @@ namespace ProjectManagement.UI.ViewModels
                 {
                     ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
                 }
+                if (e.PropertyName == nameof(Developer.FirstName) || e.PropertyName == nameof(Developer.LastName))
+                {
+                    SetTitle();
+                }
             };
             ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
 
@@ -111,6 +112,13 @@ namespace ProjectManagement.UI.ViewModels
                 Developer.FirstName = string.Empty;
                 Developer.LastName = string.Empty;
             }
+
+            SetTitle();
+        }
+
+        private void SetTitle()
+        {
+            Title = $"{Developer.FirstName} {Developer.LastName}";
         }
 
         private void InitializeDeveloperPhoneNumbers(ICollection<DeveloperPhoneNumber> developerPhoneNumbers)
@@ -155,6 +163,7 @@ namespace ProjectManagement.UI.ViewModels
         {
             await _developerRepository.SaveAsync();
             HasChanges = _developerRepository.HasChanges();
+            Id = Developer.Id;
             RaiseDetailSavedEvent(Developer.Id, $"{Developer.FirstName} {Developer.LastName}");
         }
         protected override bool OnSaveCanExecute()

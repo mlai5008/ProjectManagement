@@ -6,6 +6,8 @@ using ProjectManagement.UI.Events;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ProjectManagement.UI.Services;
+using ProjectManagement.UI.Services.Interfaces;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -13,15 +15,19 @@ namespace ProjectManagement.UI.ViewModels
     {
         #region Fields
         private readonly IEventAggregator _eventAggregator;
-        private bool _hasChanges; 
+        protected readonly IMessageDialogService _messageDialogService;
+        private bool _hasChanges;
+        private string _title;
         #endregion
 
         #region Ctor
-        protected DetailViewModelBase(IEventAggregator eventAggregator)
+        protected DetailViewModelBase(IEventAggregator eventAggregator, IMessageDialogService messageDialogService)
         {
             _eventAggregator = eventAggregator;
+            _messageDialogService = messageDialogService;
             SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
             DeleteCommand = new DelegateCommand(OnDeleteExecute);
+            CloseDetailViewCommand = new DelegateCommand(OnCloseDetailViewExecute);
         }
         #endregion
 
@@ -39,16 +45,30 @@ namespace ProjectManagement.UI.ViewModels
                 }
             }
         }
+
+        public Guid Id { get; protected set; }
+
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                _title = value;
+                OnPropertyChanged();
+            }
+        }
         #endregion
 
         #region Commands
         public ICommand SaveCommand { get; private set; }
 
         public ICommand DeleteCommand { get; private set; }
+
+        public ICommand CloseDetailViewCommand { get; }
         #endregion
 
         #region Methods
-        public abstract Task LoadAsync(Guid? id);
+        public abstract Task LoadAsync(Guid id);
 
         protected abstract void OnSaveExecute();
 
@@ -73,7 +93,26 @@ namespace ProjectManagement.UI.ViewModels
                 DisplayMember = displayMember,
                 ViewModelName = this.GetType().Name
             });
-        } 
+        }
+
+        protected virtual void OnCloseDetailViewExecute()
+        {
+            if (HasChanges)
+            {
+                MessageDialogResult result = _messageDialogService.ShowOkCancelDialog("You've made changes. Close this item?", "Question");
+                if (result == MessageDialogResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            _eventAggregator.GetEvent<AfterDetailClosedEvent>()
+                .Publish(new AfterDetailClosedEventArg
+                {
+                    Id = this.Id,
+                    ViewModelName = this.GetType().Name
+                });
+        }
         #endregion
     }
 }

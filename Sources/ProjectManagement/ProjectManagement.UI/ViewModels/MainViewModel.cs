@@ -1,14 +1,16 @@
-﻿using Prism.Commands;
+﻿using Autofac.Features.Indexed;
+using Prism.Commands;
 using Prism.Events;
+using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
 using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Autofac.Features.Indexed;
-using ProjectManagement.Domain.EventArgs;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -18,7 +20,7 @@ namespace ProjectManagement.UI.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private readonly IMessageDialogService _messageDialogService;
         private readonly IIndex<string, IDetailViewModel> _detailViewModelCreator;
-        private IDetailViewModel _detailViewModel;
+        private IDetailViewModel _selectedDetailViewModel;
         #endregion
 
         #region Ctor
@@ -29,8 +31,11 @@ namespace ProjectManagement.UI.ViewModels
 
             _detailViewModelCreator = detailViewModelCreator;
 
+            DetailViewModels = new ObservableCollection<IDetailViewModel>();
+
             _eventAggregator.GetEvent<OpenDetailViewEvent>().Subscribe(OnOpenDetailView);
             _eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnAfterDetailDeleted);
+            _eventAggregator.GetEvent<AfterDetailClosedEvent>().Subscribe(OnAfterDetailClosed);
 
             CreateNewDetailCommand = new DelegateCommand<Type>(OnCreateNewDetailExecute);
 
@@ -41,15 +46,17 @@ namespace ProjectManagement.UI.ViewModels
         #region Properties
         public INavigationViewModel NavigationViewModel { get; }
 
-        public IDetailViewModel DetailViewModel
+        public IDetailViewModel SelectedDetailViewModel
         {
-            get => _detailViewModel;
-            private set
+            get => _selectedDetailViewModel;
+            set
             {
-                _detailViewModel = value;
+                _selectedDetailViewModel = value;
                 OnPropertyChanged();
             }
         }
+
+        public ObservableCollection<IDetailViewModel> DetailViewModels { get; }
         #endregion
 
         #region Commands
@@ -64,23 +71,33 @@ namespace ProjectManagement.UI.ViewModels
 
         private async void OnOpenDetailView(OpenDetailViewEventArg arg)
         {
-            if (DetailViewModel != null && DetailViewModel.HasChanges)
+            IDetailViewModel detailViewModel = DetailViewModels.SingleOrDefault(vm => vm.Id == arg.Id && vm.GetType().Name == arg.ViewModelName);
+            if (detailViewModel == null)
             {
-                MessageDialogResult result = _messageDialogService.ShowOkCancelDialog("You've made changes. Navigate away?", "Question");
-                if (result == MessageDialogResult.Cancel)
-                {
-                    return;
-                }
+                detailViewModel = _detailViewModelCreator[arg.ViewModelName];
+                await detailViewModel.LoadAsync(arg.Id);
+                DetailViewModels.Add(detailViewModel);
             }
-
-            DetailViewModel = _detailViewModelCreator[arg.ViewModelName];
-
-            await DetailViewModel.LoadAsync(arg.Id);
+            SelectedDetailViewModel = detailViewModel;
         }
 
         private void OnAfterDetailDeleted(AfterDetailDeletedEventArg arg)
         {
-            DetailViewModel = null;
+            RemoveDetailViewModel(arg.Id, arg.ViewModelName);
+        }
+
+        private void OnAfterDetailClosed(AfterDetailClosedEventArg arg)
+        {
+            RemoveDetailViewModel(arg.Id, arg.ViewModelName);
+        }
+
+        private void RemoveDetailViewModel(Guid id, string viewModelName)
+        {
+            IDetailViewModel detailViewModel = DetailViewModels.SingleOrDefault(vm => vm.Id == id && vm.GetType().Name == viewModelName);
+            if (detailViewModel != null)
+            {
+                DetailViewModels.Remove(detailViewModel);
+            }
         }
 
         private void OnCreateNewDetailExecute(Type viewModelType)

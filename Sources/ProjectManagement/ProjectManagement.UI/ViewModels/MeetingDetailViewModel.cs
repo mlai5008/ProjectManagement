@@ -1,7 +1,9 @@
 ﻿using Prism.Commands;
 using Prism.Events;
+using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Domain.Models;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
+using ProjectManagement.UI.Events;
 using ProjectManagement.UI.Services;
 using ProjectManagement.UI.Services.Interfaces;
 using ProjectManagement.UI.Wrapper;
@@ -16,7 +18,6 @@ namespace ProjectManagement.UI.ViewModels
     public class MeetingDetailViewModel : DetailViewModelBase, IMeetingDetailViewModel
     {
         #region Fields
-        private readonly IMessageDialogService _messageDialogService;
         private readonly IMeetingRepository _meetingRepository;
         private MeetingWrapper _meeting;
         private Developer _selectedAvailableDeveloper;
@@ -26,10 +27,11 @@ namespace ProjectManagement.UI.ViewModels
 
         #region Ctor
         public MeetingDetailViewModel(IEventAggregator eventAggregator, IMessageDialogService messageDialogService,
-            IMeetingRepository meetingRepository) : base(eventAggregator)
+            IMeetingRepository meetingRepository) : base(eventAggregator, messageDialogService)
         {
-            _messageDialogService = messageDialogService;
             _meetingRepository = meetingRepository;
+            eventAggregator.GetEvent<AfterDetailSavedEvent>().Subscribe(AfterDetailSaved);
+            eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(AfterDetailDeleted);
 
             AddedDevelopers = new ObservableCollection<Developer>();
             AvailableDevelopers = new ObservableCollection<Developer>();
@@ -82,9 +84,11 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Methods
-        public override async Task LoadAsync(Guid? id)
+        public override async Task LoadAsync(Guid meetingId)
         {
-            Meeting meeting = id.HasValue ? await _meetingRepository.GetByIdAsync(id.Value) : CreateNewMeeting();
+            Meeting meeting = meetingId != Guid.Empty ? await _meetingRepository.GetByIdAsync(meetingId) : CreateNewMeeting();
+
+            Id = meetingId;
 
             InitializeMeeting(meeting);
 
@@ -97,6 +101,7 @@ namespace ProjectManagement.UI.ViewModels
         {
             await _meetingRepository.SaveAsync();
             HasChanges = _meetingRepository.HasChanges();
+            Id = Meeting.Id;
             RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
         }
 
@@ -141,6 +146,10 @@ namespace ProjectManagement.UI.ViewModels
                 {
                     ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
                 }
+                if (e.PropertyName == nameof(Meeting.Title))
+                {
+                    SetTitle();
+                }
             };
             ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
 
@@ -149,6 +158,12 @@ namespace ProjectManagement.UI.ViewModels
                 // Little trick to trigger the validation
                 Meeting.Title = "";
             }
+            SetTitle();
+        }
+
+        private void SetTitle()
+        {
+            Title = Meeting.Title;
         }
 
         private void OnAddDeveloperExecute()
@@ -198,6 +213,25 @@ namespace ProjectManagement.UI.ViewModels
             foreach (var availableFriend in availableFriends)
             {
                 AvailableDevelopers.Add(availableFriend);
+            }
+        }
+
+        private async void AfterDetailSaved(AfterDetailSavedEventArg arg)
+        {
+            if (arg.ViewModelName == nameof(DeveloperDetailViewModel))
+            {
+                await _meetingRepository.ReloadDeveloperAsync(arg.Id);
+                _allDevelopers = await _meetingRepository.GetAllDevelopersAsync();
+                SetupPicklist();
+            }
+        }
+
+        private async void AfterDetailDeleted(AfterDetailDeletedEventArg arg)
+        {
+            if (arg.ViewModelName == nameof(DeveloperDetailViewModel))
+            {
+                _allDevelopers = await _meetingRepository.GetAllDevelopersAsync();
+                SetupPicklist();
             }
         }
         #endregion

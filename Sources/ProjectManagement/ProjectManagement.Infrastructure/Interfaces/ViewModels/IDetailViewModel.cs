@@ -7,10 +7,11 @@ namespace ProjectManagement.Infrastructure.Interfaces.ViewModels
     {
         #region Properties
         bool HasChanges { get; }
+        Guid Id { get; }
         #endregion
 
         #region Methods
-        Task LoadAsync(Guid? id);
+        Task LoadAsync(Guid id);
         #endregion
     }
 }
