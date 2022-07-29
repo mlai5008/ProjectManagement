@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProjectManagement.UI.Services.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Repositories
@@ -27,6 +28,11 @@ namespace ProjectManagement.UI.Services.Repositories
         public virtual async Task<TEntity> GetByIdAsync(Guid id)
         {
             return await DbContext.Set<TEntity>().FindAsync(id);
+        }
+
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        {
+            return await DbContext.Set<TEntity>().ToListAsync();
         }
 
         public void Remove(TEntity model)

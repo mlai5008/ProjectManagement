@@ -19,6 +19,9 @@
         <DataTemplate DataType="{x:Type viewModels:MeetingDetailViewModel}">
             <view:MeetingDetailView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ProgrammingLanguageDetailViewModel}">
+            <view:ProgrammingLanguageDetailView/>
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -37,6 +40,11 @@
                 <MenuItem Header="New Meeting" 
                           Command="{Binding CreateNewDetailCommand}"
                           CommandParameter="{x:Type viewModels:MeetingDetailViewModel}"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Programming Languages"
+                          Command="{Binding OpenSingleDetailViewCommand}"
+                          CommandParameter="{x:Type viewModels:ProgrammingLanguageDetailViewModel}"/>
             </MenuItem>
         </Menu>
         <view:NavigationView Grid.Row="1"

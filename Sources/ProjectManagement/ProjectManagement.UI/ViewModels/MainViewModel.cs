@@ -38,6 +38,7 @@ namespace ProjectManagement.UI.ViewModels
             _eventAggregator.GetEvent<AfterDetailClosedEvent>().Subscribe(OnAfterDetailClosed);
 
             CreateNewDetailCommand = new DelegateCommand<Type>(OnCreateNewDetailExecute);
+            OpenSingleDetailViewCommand = new DelegateCommand<Type>(OnOpenSingleDetailViewExecute);
 
             NavigationViewModel = navigationViewModel;
         }
@@ -60,7 +61,8 @@ namespace ProjectManagement.UI.ViewModels
         #endregion
 
         #region Commands
-        public ICommand CreateNewDetailCommand { get; } 
+        public ICommand CreateNewDetailCommand { get; }
+        public ICommand OpenSingleDetailViewCommand { get; }
         #endregion
 
         #region Methods
@@ -103,6 +105,11 @@ namespace ProjectManagement.UI.ViewModels
         private void OnCreateNewDetailExecute(Type viewModelType)
         {
             OnOpenDetailView(new OpenDetailViewEventArg(){ViewModelName = viewModelType.Name});
+        }
+
+        private void OnOpenSingleDetailViewExecute(Type viewModelType)
+        {
+            OnOpenDetailView(new OpenDetailViewEventArg() { ViewModelName = viewModelType.Name });
         }
         #endregion
     }

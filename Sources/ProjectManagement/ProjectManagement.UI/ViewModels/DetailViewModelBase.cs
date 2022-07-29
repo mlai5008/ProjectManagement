@@ -3,11 +3,11 @@ using Prism.Events;
 using ProjectManagement.Domain.EventArgs;
 using ProjectManagement.Infrastructure.Interfaces.ViewModels;
 using ProjectManagement.UI.Events;
+using ProjectManagement.UI.Services;
+using ProjectManagement.UI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ProjectManagement.UI.Services;
-using ProjectManagement.UI.Services.Interfaces;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -110,6 +110,15 @@ namespace ProjectManagement.UI.ViewModels
                 .Publish(new AfterDetailClosedEventArg
                 {
                     Id = this.Id,
+                    ViewModelName = this.GetType().Name
+                });
+        }
+
+        protected virtual void RaiseCollectionSavedEvent()
+        {
+            _eventAggregator.GetEvent<AfterCollectionSavedEvent>()
+                .Publish(new AfterCollectionSavedEventArg
+                {
                     ViewModelName = this.GetType().Name
                 });
         }

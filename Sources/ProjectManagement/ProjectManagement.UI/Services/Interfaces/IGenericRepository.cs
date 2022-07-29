@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ProjectManagement.UI.Services.Interfaces
@@ -7,6 +8,7 @@ namespace ProjectManagement.UI.Services.Interfaces
     {
         #region Methods
         Task<T> GetByIdAsync(Guid id);
+        Task<IEnumerable<T>> GetAllAsync();
         Task SaveAsync();
         bool HasChanges();
         void Add(T model);

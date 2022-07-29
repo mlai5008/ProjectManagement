@@ -12,6 +12,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ProjectManagement.Domain.EventArgs;
+using ProjectManagement.UI.Events;
 
 namespace ProjectManagement.UI.ViewModels
 {
@@ -30,7 +32,9 @@ namespace ProjectManagement.UI.ViewModels
             _developerRepository = developerRepository;
             _programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
-            
+            eventAggregator.GetEvent<AfterCollectionSavedEvent>()
+                .Subscribe(AfterCollectionSaved);
+
             AddPhoneNumberCommand = new DelegateCommand(OnAddPhoneNumberExecute);
             RemovePhoneNumberCommand = new DelegateCommand(OnRemovePhoneNumberExecute, OnRemovePhoneNumberCanExecute);
 
@@ -219,6 +223,14 @@ namespace ProjectManagement.UI.ViewModels
         private bool OnRemovePhoneNumberCanExecute()
         {
             return SelectedPhoneNumber != null;
+        }
+
+        private async void AfterCollectionSaved(AfterCollectionSavedEventArg args)
+        {
+            if (args.ViewModelName == nameof(ProgrammingLanguageDetailViewModel))
+            {
+                await LoadProgrammingLanguagesLookupAsync();
+            }
         }
         #endregion
     }
